@@ -1,8 +1,9 @@
 define([
     "base/js/namespace",
     "jquery",
-    "bootstrap"
-], function (IPython, $, bs) {
+    "bootstrap",
+    'base/js/events',
+], function (IPython, $, bs, events) {
     "use strict";
 
     var tagsgo = function(){
@@ -10,16 +11,22 @@ define([
     	console.log(iftag);
     	if(iftag.length == 0){
 
-        var cells = document.getElementsByClassName('cell');
+        // var cells = document.getElementsByClassName('cell');
+        
+        var cells = $('.cell');
 
         for (var i = 0; i < cells.length; i++) {
-            var tagsdiv = document.createElement("div");
-            tagsdiv.classList.add('tagcourt');
-            tagsdiv.setAttribute("isshow",'true');
+            // var tagsdiv = document.createElement("div");
+            // tagsdiv.classList.add('tagcourt');
+            // tagsdiv.setAttribute("isshow",'true');
+
+            var tagsdiv = $('<div/>').addClass('tagcourt').attr("isshow",'true');
             $('div.tagcourt').show();
 
-            var tagspan = document.createElement("span");
-            tagspan.classList.add('celltag')
+            // var tagspan = document.createElement("span");
+            // tagspan.classList.add('celltag')
+
+            var tagspan = $('<span/>').addClass('celltag')
 
             var tagone = addtag('fa-bell-o');
             var tagtwo = addtag('fa-at');
@@ -27,14 +34,13 @@ define([
             var tagfour = addtag('fa-commenting-o');
             var tagfive = addtag('fa-exclamation-circle')
 
-            tagsdiv.appendChild(tagspan);
-            tagsdiv.appendChild(tagone);
-            tagsdiv.appendChild(tagtwo);
-            tagsdiv.appendChild(tagthree);
-            tagsdiv.appendChild(tagfour);
-            tagsdiv.appendChild(tagfive);
-            cells[i].appendChild(tagsdiv);
-
+            tagsdiv.append(tagspan);
+            tagsdiv.append(tagone);
+            tagsdiv.append(tagtwo);
+            tagsdiv.append(tagthree);
+            tagsdiv.append(tagfour);
+            tagsdiv.append(tagfive);
+            cells[i].append(tagsdiv.get(0));            
         }
 
         var styleElement = document.getElementById('styles_js');
@@ -81,8 +87,21 @@ define([
 				}
 			}
 		}
-		showtoolbar();
+		// showtoolbar();
 
+			var cells = IPython.notebook.get_cells();
+			var divs = $('div.tagcourt');
+			for(var i = 0;i < cells.length;i++){
+				// console.log(cells[i].metadata.tags);
+				if(cells[i].metadata.tags){
+					var tags = cells[i].metadata.tags;
+					for(var j = 0;j < tags.length;j++){
+						var tag = '.celltag.' + tags[j];
+						var target = $(tag)[i];
+						target.click();
+					}
+				}
+			}
     };
 
 	var showtoolbar = function () {
@@ -125,7 +144,7 @@ define([
                     // console.log(tags);
                     if(tags.length > 0){
                         var cells = document.getElementsByClassName('rendered');
-
+                        
                         for(var i = 0;i < cells.length;i++ ){
                             if(cells[i].classList.contains('cell-show')==true){
 　　　　                        cells[i].classList.remove('cell-show');
@@ -183,8 +202,6 @@ define([
                     $('.cell-hide').hide()
                     var fliters = $('.fliter_tag');
 
-
-
                     //全部还原
                     var pressed = 0;                //被按下按钮计数
                     for(var i = 0;i < fliters.length;i++){
@@ -208,25 +225,59 @@ define([
 	}
 
 	var addtag = function (icon) {													//标签按钮模板
-		var newtag = document.createElement('button');
-            newtag.id = 'tagbutton';
-            newtag.classList.add('celltag','btn','btn-default','fa');
-            newtag.classList.add(icon);
-            newtag.type = 'button';
-            newtag.dataset.toggle = 'button';
-            newtag.setAttribute("aria-pressed",'false');
-            newtag.setAttribute("atuocomplete",'off');
+		// var newtag = document.createElement('button');
+  //           newtag.id = 'tagbutton';
+  //           newtag.classList.add('celltag','btn','btn-default','fa');
+  //           newtag.classList.add(icon);
+  //           newtag.type = 'button';
+  //           newtag.dataset.toggle = 'button';
+  //           newtag.setAttribute("aria-pressed",'false');
+  //           newtag.setAttribute("autocomplete",'off');
 
+        var newtag = $('<button/>').addClass('celltag btn btn-default fa ' + icon)
+        			 .attr("id",'tagbutton')
+        			 .attr("type",'button')
+        			 .attr("data-toggle",'button')
+        			 .attr("aria-pressed",'false')
+        			 .attr("autocomplete",'off')
+        			 .click(function(){
+        			 	var cells = IPython.notebook.get_cells();
+        			 	var tags = $('.celltag.' + icon);
+        			 	for(var k = 0;k < tags.length;k++){
+        			 		if(tags[k] == this){
+        			 			var num = k;
+        			 			console.log(num);
+        			 			break;
+        			 		}        			 		
+        			 	}
+        			 	// if(cells[num].metadata.tags == undefined){
+        			 	// 	var tags_on = new Array();
+        			 	// }
+        			 	// tags_on[tags_on.length] = icon;
+        			 	// cells[num].metadata.tags = tags_on;
 
+        			 	var tags_on = new Array();
+        			 	var tagcourt = $('.tagcourt')[num];
+        			 	tags_on = $(tagcourt).children('.active');        			 	
+        			 	if($(this).attr("aris-pressed") == true){
+        			 		tags_on[tags_on.length] = this;
+        			 	}        			 	
+        			 	console.log(tags_on);
+        			 	clees[num].metadata.tags = tags_on;
+
+        			 })
         return newtag;
 	}
 
   var load_ipython_extension = function () {
+  		events.on('notebook_loaded.Notebook', tagsgo);
+        if (IPython.notebook._fully_loaded) tagsgo();
+
         IPython.toolbar.add_buttons_group([
             IPython.keyboard_manager.actions.register ({
                 help   : 'add tag',
                 icon   : 'fa-ticket',
-                handler : tagsgo
+                handler : showtoolbar
             }, 'add tags', 'tags')
         ]);
     };
