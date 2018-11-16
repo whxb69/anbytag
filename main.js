@@ -12,7 +12,7 @@ define([
     	if(iftag.length == 0){
 
         // var cells = document.getElementsByClassName('cell');
-        
+
         var cells = $('.cell');
 
         for (var i = 0; i < cells.length; i++) {
@@ -40,7 +40,7 @@ define([
             tagsdiv.append(tagthree);
             tagsdiv.append(tagfour);
             tagsdiv.append(tagfive);
-            cells[i].append(tagsdiv.get(0));            
+            cells[i].append(tagsdiv.get(0));
         }
 
         var styleElement = document.getElementById('styles_js');
@@ -92,13 +92,15 @@ define([
 			var cells = IPython.notebook.get_cells();
 			var divs = $('div.tagcourt');
 			for(var i = 0;i < cells.length;i++){
-				// console.log(cells[i].metadata.tags);
+				console.log(cells[i].metadata.tags);
 				if(cells[i].metadata.tags){
 					var tags = cells[i].metadata.tags;
 					for(var j = 0;j < tags.length;j++){
 						var tag = '.celltag.' + tags[j];
 						var target = $(tag)[i];
 						target.click();
+						// cells[i].metadata.tags[cells[i].metadata.tags.length] = tags[j];
+                        // $(tags[j]).click()
 					}
 				}
 			}
@@ -144,7 +146,7 @@ define([
                     // console.log(tags);
                     if(tags.length > 0){
                         var cells = document.getElementsByClassName('rendered');
-                        
+
                         for(var i = 0;i < cells.length;i++ ){
                             if(cells[i].classList.contains('cell-show')==true){
 　　　　                        cells[i].classList.remove('cell-show');
@@ -240,7 +242,7 @@ define([
         			 .attr("data-toggle",'button')
         			 .attr("aria-pressed",'false')
         			 .attr("autocomplete",'off')
-        			 .click(function(){
+        			 .click(function(bot){
         			 	var cells = IPython.notebook.get_cells();
         			 	var tags = $('.celltag.' + icon);
         			 	for(var k = 0;k < tags.length;k++){
@@ -248,22 +250,40 @@ define([
         			 			var num = k;
         			 			console.log(num);
         			 			break;
-        			 		}        			 		
+        			 		}
         			 	}
-        			 	// if(cells[num].metadata.tags == undefined){
-        			 	// 	var tags_on = new Array();
+        			 	
+        			 	var tags_on = [];
+        			 	// if(cells[num].metadata.tags){
+        			 	// 	tags_on = cells[num].metadata.tags;
         			 	// }
-        			 	// tags_on[tags_on.length] = icon;
-        			 	// cells[num].metadata.tags = tags_on;
-
-        			 	var tags_on = new Array();
-        			 	var tagcourt = $('.tagcourt')[num];
-        			 	tags_on = $(tagcourt).children('.active');        			 	
-        			 	if($(this).attr("aris-pressed") == true){
-        			 		tags_on[tags_on.length] = this;
-        			 	}        			 	
-        			 	console.log(tags_on);
-        			 	clees[num].metadata.tags = tags_on;
+                        
+       					var tagcourt = $('.tagcourt')[num];
+       					var tags = $(tagcourt).children('.celltag');
+       					for(var i = 0;i < tags.length;i++){
+       						var patt = /fa-[-a-z]+\sactive/i;
+                            var reslist = patt.exec(tags[i].className);
+                            // console.log(reslist);
+                            if(reslist != null){
+                            	var iconn = reslist[0].slice(0,-7);
+                            	console.log(iconn);
+                            	tags_on[tags_on.length] = iconn;
+                            }                          
+       					}
+                        
+                        var cur = $(tagcourt).children('.celltag.' + icon);
+                        console.log($(cur).attr("aria-pressed"));
+                        if($(cur).attr("aria-pressed") == 'false'){
+                        	tags_on[tags_on.length] = icon;
+                    	}else{
+                    		for(var j = 0;j < tags_on.length;j++){
+                    			if(tags_on[j] == icon){
+                    				tags_on.splice(j,1);
+                    			}
+                    		}
+                    	}
+                        console.log(tags_on);
+                        cells[num].metadata.tags = tags_on;
 
         			 })
         return newtag;
