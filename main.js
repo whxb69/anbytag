@@ -11,37 +11,10 @@ define([
     	console.log(iftag);
     	if(iftag.length == 0){
 
-        // var cells = document.getElementsByClassName('cell');
-
         var cells = $('.cell');
-
-        for (var i = 0; i < cells.length; i++) {
-            // var tagsdiv = document.createElement("div");
-            // tagsdiv.classList.add('tagcourt');
-            // tagsdiv.setAttribute("isshow",'true');
-
-            var tagsdiv = $('<div/>').addClass('tagcourt').attr("isshow",'true');
-            $('div.tagcourt').show();
-
-            // var tagspan = document.createElement("span");
-            // tagspan.classList.add('celltag')
-
-            var tagspan = $('<span/>').addClass('celltag')
-
-            var tagone = addtag('fa-bell-o');
-            var tagtwo = addtag('fa-at');
-            var tagthree = addtag('fa-ban');
-            var tagfour = addtag('fa-commenting-o');
-            var tagfive = addtag('fa-exclamation-circle')
-
-            tagsdiv.append(tagspan);
-            tagsdiv.append(tagone);
-            tagsdiv.append(tagtwo);
-            tagsdiv.append(tagthree);
-            tagsdiv.append(tagfour);
-            tagsdiv.append(tagfive);
-            cells[i].append(tagsdiv.get(0));
-        }
+        IPython.notebook.get_cells().forEach(function(cell){
+            addcourt(cell);
+        })
 
         var styleElement = document.getElementById('styles_js');
 
@@ -88,23 +61,56 @@ define([
 			}
 		}
 		// showtoolbar();
-
+			/*载入被点击标签数据 进行初始化 */
 			var cells = IPython.notebook.get_cells();
 			var divs = $('div.tagcourt');
 			for(var i = 0;i < cells.length;i++){
-				console.log(cells[i].metadata.tags);
+				// console.log(cells[i].metadata.tags);
 				if(cells[i].metadata.tags){
 					var tags = cells[i].metadata.tags;
 					for(var j = 0;j < tags.length;j++){
 						var tag = '.celltag.' + tags[j];
 						var target = $(tag)[i];
-						target.click();
-						// cells[i].metadata.tags[cells[i].metadata.tags.length] = tags[j];
-                        // $(tags[j]).click()
+						target.click();						
 					}
 				}
 			}
+		events.on('create.Cell',callback_create_cell); 
     };
+
+    var callback_create_cell = function(evt,data){
+        // if (data.cell.cell_type == 'code') {
+            if (data.cell.element.find('tagcourt').length == 0) {}
+                addcourt(data.cell);
+        // }
+    }
+
+    var addcourt = function (cell) {
+    	var tagsdiv = $('<div/>').addClass('tagcourt').attr("isshow",'true');
+            $('div.tagcourt').show();
+        var tagspan = $('<span/>').addClass('celltag')
+
+        var tagone = addtag('fa-bell-o');
+        var tagtwo = addtag('fa-at');
+        var tagthree = addtag('fa-ban');
+        var tagfour = addtag('fa-commenting-o');
+        var tagfive = addtag('fa-exclamation-circle')
+
+        tagsdiv.append(tagspan);
+        tagsdiv.append(tagone);
+        tagsdiv.append(tagtwo);
+        tagsdiv.append(tagthree);
+        tagsdiv.append(tagfour);
+        tagsdiv.append(tagfive);
+
+        if(cell.cell_type == 'code'){
+    		var input = cell.element.find('.input')
+    		$(input.get(0)).width(1158);
+    		$(tagsdiv.get(0)).appendTo(input);
+    	}else{
+    		$(tagsdiv.get(0)).appendTo(cell.element);
+    	}        
+    }
 
 	var showtoolbar = function () {
 		var iffliter = document.getElementsByClassName('tag_fliter');
@@ -130,7 +136,6 @@ define([
 			$('#maintoolbar-container').append(tagfliter);
 			$('#maintoolbar-container').append(checkdiv);
 		}
-
 	}
 
 	var tagcreate = function (icon){
@@ -140,36 +145,27 @@ define([
                    .attr("data-toggle",'button')
                    .attr("aria-pressed",'false')
                    .height(24.5);
+            /*标签过滤功能*/
             newb.click(function(){
-                var tags = document.getElementsByClassName(icon);
+                var tags = document.getElementsByClassName(icon + ' celltag');
                 if($(this).attr('aria-pressed') == 'false'){
-                    // console.log(tags);
+                    console.log(tags);
                     if(tags.length > 0){
-                        var cells = document.getElementsByClassName('rendered');
-
-                        for(var i = 0;i < cells.length;i++ ){
-                            if(cells[i].classList.contains('cell-show')==true){
-　　　　                        cells[i].classList.remove('cell-show');
-                            }
-                        cells[i].classList.add("cell-hide");
-                        $('div.cell-hide').hide();
-                    }
-                        console.log(tags);
+                    	IPython.notebook.get_cells().forEach(function (cell) {
+                    		cell.element.hide();
+                    	})
+                        // console.log(tags);
                         for(var i = 0;i < tags.length;i++ ){
                             if(tags[i].getAttribute("aria-pressed") == 'true'){
-                                var parent = tags[i].parentNode;
-                                var div = parent.parentNode;
-                                if(div.classList.contains('cell-hide')==true){
-　　　　                            div.classList.remove('cell-hide');
-                                }
-                                div.classList.add('cell-show');
-                                $('div.cell-show').show();
+                            	var cells = IPython.notebook.get_cells();
+                            	console.log($(cells[i].element[0]))
+                            	$(cells[i].element[0]).show()
                             }
                         }
-                    }
                     if($('#if-mul').val() == 'checked'){
-
+                    	//TODO:标签筛选强关联
                     }
+                    
                     var fliters = $('.fliter_tag');
                     for(var i = 0;i < fliters.length;i++){
                         if(fliters[i].getAttribute('aria-pressed') == 'true'){
@@ -227,15 +223,6 @@ define([
 	}
 
 	var addtag = function (icon) {													//标签按钮模板
-		// var newtag = document.createElement('button');
-  //           newtag.id = 'tagbutton';
-  //           newtag.classList.add('celltag','btn','btn-default','fa');
-  //           newtag.classList.add(icon);
-  //           newtag.type = 'button';
-  //           newtag.dataset.toggle = 'button';
-  //           newtag.setAttribute("aria-pressed",'false');
-  //           newtag.setAttribute("autocomplete",'off');
-
         var newtag = $('<button/>').addClass('celltag btn btn-default fa ' + icon)
         			 .attr("id",'tagbutton')
         			 .attr("type",'button')
@@ -254,10 +241,6 @@ define([
         			 	}
         			 	
         			 	var tags_on = [];
-        			 	// if(cells[num].metadata.tags){
-        			 	// 	tags_on = cells[num].metadata.tags;
-        			 	// }
-                        
        					var tagcourt = $('.tagcourt')[num];
        					var tags = $(tagcourt).children('.celltag');
        					for(var i = 0;i < tags.length;i++){
@@ -272,7 +255,7 @@ define([
        					}
                         
                         var cur = $(tagcourt).children('.celltag.' + icon);
-                        console.log($(cur).attr("aria-pressed"));
+                        // console.log($(cur).attr("aria-pressed"));
                         if($(cur).attr("aria-pressed") == 'false'){
                         	tags_on[tags_on.length] = icon;
                     	}else{
@@ -282,7 +265,7 @@ define([
                     			}
                     		}
                     	}
-                        console.log(tags_on);
+                        // console.log(tags_on);
                         cells[num].metadata.tags = tags_on;
 
         			 })
