@@ -11,7 +11,14 @@ define([
     	console.log(iftag);
     	if(iftag.length == 0){
 
+        // var cells = document.getElementsByClassName('cell');
+
         var cells = $('.cell');
+
+        // for (var i = 0; i < cells.length; i++) {
+            // var tagsdiv = document.createElement("div");
+            // tagsdiv.classList.add('tagcourt');
+            // tagsdiv.setAttribute("isshow",'true');
         IPython.notebook.get_cells().forEach(function(cell){
             addcourt(cell);
         })
@@ -109,7 +116,8 @@ define([
     		$(tagsdiv.get(0)).appendTo(input);
     	}else{
     		$(tagsdiv.get(0)).appendTo(cell.element);
-    	}        
+    	}
+        
     }
 
 	var showtoolbar = function () {
@@ -136,6 +144,7 @@ define([
 			$('#maintoolbar-container').append(tagfliter);
 			$('#maintoolbar-container').append(checkdiv);
 		}
+
 	}
 
 	var tagcreate = function (icon){
@@ -147,77 +156,41 @@ define([
                    .height(24.5);
             /*标签过滤功能*/
             newb.click(function(){
-                var tags = document.getElementsByClassName(icon + ' celltag');
-                if($(this).attr('aria-pressed') == 'false'){
-                    console.log(tags);
-                    if(tags.length > 0){
-                    	IPython.notebook.get_cells().forEach(function (cell) {
-                    		cell.element.hide();
-                    	})
-                        // console.log(tags);
-                        for(var i = 0;i < tags.length;i++ ){
-                            if(tags[i].getAttribute("aria-pressed") == 'true'){
-                            	var cells = IPython.notebook.get_cells();
-                            	console.log($(cells[i].element[0]))
-                            	$(cells[i].element[0]).show()
-                            }
-                        }
-                    if($('#if-mul').val() == 'checked'){
-                    	//TODO:标签筛选强关联
-                    }
-                    
-                    var fliters = $('.fliter_tag');
-                    for(var i = 0;i < fliters.length;i++){
-                        if(fliters[i].getAttribute('aria-pressed') == 'true'){
-                            var patt = /fa-.+\s/i;
-                            var reslist = patt.exec(fliters[i].className);
-                            var iconn = reslist[0].slice(0,-1);
-                            var btns = $('button.celltag.' + iconn);
-                            console.log(btns);
-                            for(var j = 0;j < btns.length;j++){
-                                if(btns[j].getAttribute("aria-pressed") == 'true'){
-                                var parent = btns[j].parentNode;
-                                var div = parent.parentNode;
-                                if(div.classList.contains('cell-hide')==true){
-　　　　                            div.classList.remove('cell-hide');
-                                    div.classList.add('cell-show');
-                                    }
-                                    $('div.cell-show').show();
-                                }
-                            }
-                        }
-                    }
-                }else{
-                    var tags = document.getElementsByClassName('celltag active ' + icon);
-                    for(var i = 0;i < tags.length;i++ ){
-                        var parent = tags[i].parentNode;
-                        var div = parent.parentNode;
-                        if(div.classList.contains('cell-show')==true){
-　　　　                    div.classList.remove('cell-show');
-　　　　                    div.classList.add('cell-hide');
-                        }
-                    }
-                    $('.cell-hide').hide()
-                    var fliters = $('.fliter_tag');
-
-                    //全部还原
-                    var pressed = 0;                //被按下按钮计数
-                    for(var i = 0;i < fliters.length;i++){
-                        if(fliters[i].getAttribute('aria-pressed') == 'true'){
-                            pressed++;
-                        }
-                    }
-                    if(pressed == 1){
-                        var cells = document.getElementsByClassName('rendered');
-                        for (var i = 0; i < cells.length; i++) {
-                            if(cells[i].classList.contains('cell-show')==false){
-　　　　                        cells[i].classList.remove('cell-hide');
-                                cells[i].classList.add('cell-show');
-                            }
-                        }
-                        $('div.cell-show').show();
-                    }
-                }
+            	IPython.notebook.get_cells().forEach(function (cell) {
+    				cell.element.hide();
+				})
+				/*按钮按下*/
+				var cells = IPython.notebook.get_cells();
+				if($(this).attr('aria-pressed') == 'false'){
+					var tags = document.getElementsByClassName(icon + ' celltag');
+					for(var i = 0;i < tags.length;i++ ){
+				        if(tags[i].getAttribute("aria-pressed") == 'true'){
+				            $(cells[i].element[0]).show();
+				        }
+				    }
+				}
+				var fliters = $('.fliter_tag');
+				var pressed = 0;
+				for(i = 0;i < fliters.length;i++){
+					if(fliters[i] != this && fliters[i].getAttribute('aria-pressed') == 'true'){
+				        var patt = /fa-.+\s/i;
+				        var reslist = patt.exec(fliters[i].className);
+				        var iconn = reslist[0].slice(0,-1);
+				        var tags = document.getElementsByClassName(iconn + ' celltag');
+				        for(var j = 0;j < tags.length;j++ ){
+				            if(tags[j].getAttribute("aria-pressed") == 'true'){
+				                $(cells[j].element[0]).show()
+				            }
+				        }
+				        pressed++;
+				    }				    
+				}
+				//按钮全部按起
+				if($(this).attr('aria-pressed') == 'true' && pressed == 0){
+					IPython.notebook.get_cells().forEach(function (cell) {
+    					cell.element.show();
+					})
+				}
             })
 		return newb;
 	}
@@ -265,7 +238,7 @@ define([
                     			}
                     		}
                     	}
-                        // console.log(tags_on);
+                        console.log(tags_on);
                         cells[num].metadata.tags = tags_on;
 
         			 })
